@@ -17,6 +17,8 @@ class SfMNet(tf.keras.Model):
         obj_params, cam_params = self.motion(x, y)
         pc_t = apply_obj_transform(pc, *obj_params)
         pc_t = apply_cam_transform(pc, *cam_params)
+        flow = optical_flow(pc_t)
+        return flow
 
 
 def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
@@ -63,6 +65,30 @@ def apply_cam_transform(pc, cam_t, cam_p, cam_r):
     return pc_t
 
 
+def optical_flow(pc, camera_intrinsics=(0.5, 0.5, 1.0)):
+    points = _project_2d(pc, camera_intrinsics)
+    b, h, w, c = points.shape
+
+    x_l = tf.linspace(0.0, 1.0, w)
+    y_l = tf.linspace(0.0, 1.0, h)
+    x, y = tf.meshgrid(x_l, y_l)
+    pos = tf.stack([x, y], -1)
+    flow = points - pos
+    return flow
+
+
+def _project_2d(pc, camera_intrinsics):
+    cx, cy, cf = camera_intrinsics
+
+    X = pc[:, :, :, 0]
+    Y = pc[:, :, :, 1]
+    Z = pc[:, :, :, 2]
+
+    x = cf * X / Z + cx
+    y = cf * Y / Z + cy
+    return tf.stack([x, y], -1)
+
+
 def _point_prior(p):
     p = tf.reshape(p, [-1, 30, 20])
     p_x = tf.reduce_sum(p, 2)
@@ -106,6 +132,7 @@ def _r_mat(r):
     ], -2)
 
     return R_x @ R_y @ R_z
+
 
 if __name__ == '__main__':
     tf.enable_eager_execution()
