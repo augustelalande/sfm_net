@@ -23,7 +23,8 @@ class MotionNet(tf.keras.Model):
         self.obj_p = Dense(600 * num_masks)
         self.obj_r = Dense(3 * num_masks, activation=tf.tanh)
 
-    def call(self, x):
+    def call(self, f0, f1):
+        x = tf.concat([f0, f1], -1)
         x, r = self.cd_net(x)
         b, *_ = r.shape
 
