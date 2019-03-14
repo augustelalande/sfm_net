@@ -12,13 +12,13 @@ class SfMNet(tf.keras.Model):
         self.structure = StructureNet()
         self.motion = MotionNet()
 
-    def call(self, x):
-        depth, pc = self.structure(x)
-        obj_params, cam_params = self.motion(x, y)
+    def call(self, f0, f1):
+        depth, pc = self.structure(f0)
+        obj_params, cam_params = self.motion(f0, f1)
         pc_t = apply_obj_transform(pc, *obj_params)
         pc_t = apply_cam_transform(pc, *cam_params)
-        flow = optical_flow(pc_t)
-        return flow
+        points, flow = optical_flow(pc_t)
+        return depth, points, flow
 
 
 def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
@@ -74,7 +74,7 @@ def optical_flow(pc, camera_intrinsics=(0.5, 0.5, 1.0)):
     x, y = tf.meshgrid(x_l, y_l)
     pos = tf.stack([x, y], -1)
     flow = points - pos
-    return flow
+    return points, flow
 
 
 def _project_2d(pc, camera_intrinsics):
@@ -143,4 +143,4 @@ if __name__ == '__main__':
     obj_p = tf.ones([10, 5 * 600])
     obj_r = tf.ones([10, 5 * 3])
 
-    apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=5)
+    optical_flow(pc)
