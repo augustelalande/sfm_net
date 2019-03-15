@@ -14,7 +14,7 @@ class StructureNet(tf.keras.Model):
     def call(self, x):
         x, _ = self.cd_net(x)
         x = self.depth(x)
-        depth = tf.clip_by_value(x, 1, 100)
+        depth = tf.sigmoid(x) * 99 + 1
         pc = depth_to_point(depth)
         return depth, pc
 
@@ -23,11 +23,10 @@ def depth_to_point(depth, camera_intrinsics=(0.5, 0.5, 1.0)):
     cx, cy, cf = camera_intrinsics
     b, h, w, c = depth.shape
 
-    x_l = tf.linspace(-cx, 1 - cx, w)
-    y_l = tf.linspace(-cy, 1 - cy, h)
+    x_l = tf.linspace(-cx, 1 - cx, w) / cf
+    y_l = tf.linspace(-cy, 1 - cy, h) / cf
 
     x, y = tf.meshgrid(x_l, y_l)
-    x, y = x / cf, y / cf
     f = tf.ones_like(x)
 
     grid = tf.stack([x, y, f], -1)

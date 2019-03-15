@@ -25,11 +25,11 @@ def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
     b, h, w, c = pc.shape
 
     p = _point_prior(obj_p)
-    R = _r_mat(tf.reshape(obj_r, [b, num_masks, 3]))
+    R = _r_mat(tf.reshape(obj_r, [-1, 3]))
 
-    p = tf.reshape(p, [-1, 1, 1, num_masks, 3])
-    t = tf.reshape(obj_t, [-1, 1, 1, num_masks, 3])
-    R = tf.reshape(R, [-1, 1, 1, num_masks, 3, 3])
+    p = tf.reshape(p, [b, 1, 1, num_masks, 3])
+    t = tf.reshape(obj_t, [b, 1, 1, num_masks, 3])
+    R = tf.reshape(R, [b, 1, 1, num_masks, 3, 3])
     R = tf.tile(R, [1, h, w, 1, 1, 1])
 
     pc = tf.reshape(pc, [b, h, w, 1, 3])
@@ -49,12 +49,12 @@ def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
 def apply_cam_transform(pc, cam_t, cam_p, cam_r):
     b, h, w, c = pc.shape
 
-    p = _point_prior(obj_p)
-    R = _r_mat(tf.reshape(obj_r, [b, num_masks, 3]))
+    p = _point_prior(cam_p)
+    R = _r_mat(cam_r)
 
-    p = tf.reshape(p, [-1, 1, 1, 3])
-    t = tf.reshape(obj_t, [-1, 1, 1, 3])
-    R = tf.reshape(R, [-1, 1, 1, 3, 3])
+    p = tf.reshape(p, [b, 1, 1, 3])
+    t = tf.reshape(cam_t, [b, 1, 1, 3])
+    R = tf.reshape(R, [b, 1, 1, 3, 3])
     R = tf.tile(R, [1, h, w, 1, 1])
 
     pc_t = pc - p
@@ -106,9 +106,9 @@ def _point_prior(p):
 
 
 def _r_mat(r):
-    alpha = r[:, :, 0] * math.pi
-    beta = r[:, :, 1] * math.pi
-    gamma = r[:, :, 2] * math.pi
+    alpha = r[:, 0] * math.pi
+    beta = r[:, 1] * math.pi
+    gamma = r[:, 2] * math.pi
 
     zero = tf.zeros_like(alpha)
     one = tf.ones_like(alpha)
@@ -132,15 +132,3 @@ def _r_mat(r):
     ], -2)
 
     return R_x @ R_y @ R_z
-
-
-if __name__ == '__main__':
-    tf.enable_eager_execution()
-
-    pc = tf.ones([10, 32, 32, 3])
-    obj_mask = tf.ones([10, 32, 32, 5])
-    obj_t = tf.ones([10, 5 * 3])
-    obj_p = tf.ones([10, 5 * 600])
-    obj_r = tf.ones([10, 5 * 3])
-
-    optical_flow(pc)

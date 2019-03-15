@@ -74,14 +74,3 @@ class DataReader(object):
             ]
         )
         return frame0, frame1
-
-
-if __name__ == '__main__':
-    tf.enable_eager_execution()
-
-    test = DataReader('stereo', 20, "/localdata/auguste/kitti-raw")
-    a = test.read()
-    import cv2
-    cv2.imwrite("test1.jpg", a[0][0].numpy() * 255)
-    cv2.imwrite("test2.jpg", a[1][0].numpy() * 255)
-    print(a[0].shape, a[1].shape)
