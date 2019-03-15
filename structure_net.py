@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.activations import sigmoid
 
 from conv_deconv_net import ConvDeconvNet
 
@@ -9,12 +10,11 @@ class StructureNet(tf.keras.Model):
         super().__init__()
 
         self.cd_net = ConvDeconvNet()
-        self.depth = Conv2D(1, 1)
+        self.depth = Conv2D(1, 1, activation=sigmoid)
 
     def call(self, x):
         x, _ = self.cd_net(x)
-        x = self.depth(x)
-        depth = tf.sigmoid(x) * 99 + 1
+        depth = self.depth(x) * 99 + 1
         pc = depth_to_point(depth)
         return depth, pc
 

@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Conv2D
-from tensorflow.nn import relu
+from tensorflow.keras.activations import relu, sigmoid, tanh
 
 from conv_deconv_net import ConvDeconvNet
 
@@ -10,18 +10,18 @@ class MotionNet(tf.keras.Model):
         super().__init__()
 
         self.cd_net = ConvDeconvNet()
-        self.obj_mask = Conv2D(num_masks, 1, activation=tf.sigmoid)
+        self.obj_mask = Conv2D(num_masks, 1, activation=sigmoid)
 
         self.d1 = Dense(512, activation=relu)
         self.d2 = Dense(512, activation=relu)
 
         self.cam_t = Dense(3)
         self.cam_p = Dense(600)
-        self.cam_r = Dense(3, activation=tf.tanh)
+        self.cam_r = Dense(3, activation=tanh)
 
         self.obj_t = Dense(3 * num_masks)
         self.obj_p = Dense(600 * num_masks)
-        self.obj_r = Dense(3 * num_masks, activation=tf.tanh)
+        self.obj_r = Dense(3 * num_masks, activation=tanh)
 
     def call(self, f0, f1):
         x = tf.concat([f0, f1], -1)
