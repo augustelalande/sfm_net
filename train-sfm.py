@@ -44,11 +44,7 @@ if __name__ == '__main__':
         fb_loss = forward_backward_consistency_loss(
             depth, depth1, points, pc_t)
 
-        loss = f_loss
-        # + \
-        #     spatial_smoothness_loss(depth) + \
-        #     spatial_smoothness_loss(flow) + \
-        #     forward_backward_consistency_loss()
+        loss = f_loss + fb_loss
         optimize = optimizer.minimize(loss, global_step=global_step)
 
         summary.scalar("loss", loss, family="train")
