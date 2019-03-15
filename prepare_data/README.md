@@ -19,10 +19,11 @@ Note the final dataset is on the order of 2GB, so it may be possible for me to t
 ## References
 
 Any work using the KITTI dataset should cite the original authors.
-
-	@ARTICLE{Geiger2013IJRR,
-		author = {Andreas Geiger and Philip Lenz and Christoph Stiller and Raquel Urtasun},
-        title = {Vision meets Robotics: The KITTI Dataset},
-        journal = {International Journal of Robotics Research (IJRR)},
-        year = {2013}
-    }
+```
+@ARTICLE{Geiger2013IJRR,
+    author = {Andreas Geiger and Philip Lenz and Christoph Stiller and Raquel Urtasun},
+    title = {Vision meets Robotics: The KITTI Dataset},
+    journal = {International Journal of Robotics Research (IJRR)},
+    year = {2013}
+}
+```
