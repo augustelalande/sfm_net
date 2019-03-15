@@ -18,7 +18,7 @@ class SfMNet(tf.keras.Model):
         pc_t = apply_obj_transform(pc, *obj_params)
         pc_t = apply_cam_transform(pc, *cam_params)
         points, flow = optical_flow(pc_t)
-        return depth, points, flow
+        return depth, points, flow, obj_params[0], pc_t
 
 
 def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):

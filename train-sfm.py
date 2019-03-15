@@ -37,9 +37,12 @@ if __name__ == '__main__':
         # Train
 
         f0, f1 = data_reader.read()
-        depth, points, flow = model(f0, f1)
+        depth, points, flow, obj_masks, pc_t = model(f0, f1)
+        depth1, *_ = model(f1, f0)
 
         f_loss, f1_t = frame_loss(f0, f1, points)
+        fb_loss = forward_backward_consistency_loss(
+            depth, depth1, points, pc_t)
 
         loss = f_loss
         # + \
@@ -51,11 +54,16 @@ if __name__ == '__main__':
         summary.scalar("loss", loss, family="train")
 
         summary.histogram("depth_hist", depth)
+        summary.histogram("obj masks", obj_masks)
+        summary.histogram("flow_x_hist", flow[:, :, :, 0], family="flow")
+        summary.histogram("flow_y_hist", flow[:, :, :, 1], family="flow")
 
         summary.image("frame0", cast_im(f0), max_images=3)
         summary.image("frame1", cast_im(f1), max_images=3)
         summary.image("frame1_t", cast_im(f1_t), max_images=3)
         summary.image("depth", cast_depth(depth), max_images=3)
+        summary.image("optical_flow", cast_flow(flow), max_images=3)
+        summary.image("object masks", cast_im(obj_masks), max_images=3)
 
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
