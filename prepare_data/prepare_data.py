@@ -2,6 +2,7 @@ import os
 import glob
 import shutil
 import cv2
+import argparse
 import tensorflow as tf
 from zipfile import ZipFile
 from urllib.request import urlretrieve
@@ -9,10 +10,6 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from functools import partial
 
-# tf.enable_eager_execution()
-
-
-root = "/localdata/auguste/kitti-raw"
 
 url_template_raw = (
     "https://s3.eu-central-1.amazonaws.com/avg-kitti/raw_data/{0}/{0}_sync.zip"
@@ -182,7 +179,19 @@ def make_training_set(root):
         pass
 
 
+def get_args():
+    parser = argparse.ArgumentParser(
+        description="Download and Preprocess KITTI data")
+    parser.add_argument(
+        'save_path',
+        help='Path to store downloaded data. Should have 400GB of free space.')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
+    args = get_args()
+    root = args.save_path
+
     print("Maybe downloading kitti data; this may take a while.")
     maybe_download(
         root,
