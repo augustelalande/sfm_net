@@ -1,29 +1,29 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Conv2DTranspose, SeparableConv2D
-from tensorflow.nn import relu
+from tensorflow.keras.layers import Conv2D, Conv2DTranspose
+from tensorflow.keras.activations import relu
 
 
 class ConvDeconvNet(tf.keras.Model):
     def __init__(self):
         super().__init__()
-        kwargs = {'padding': 'SAME', 'activation': relu, 'depth_multiplier': 9}
+        kwargs = {'padding': 'SAME', 'activation': relu}
 
-        self.c11 = SeparableConv2D(32, 3, **kwargs)
+        self.c11 = Conv2D(32, 3, **kwargs)
 
-        self.c21 = SeparableConv2D(64, 3, strides=2, **kwargs)
-        self.c22 = SeparableConv2D(64, 3, **kwargs)
+        self.c21 = Conv2D(64, 3, strides=2, **kwargs)
+        self.c22 = Conv2D(64, 3, **kwargs)
 
-        self.c31 = SeparableConv2D(128, 3, strides=2, **kwargs)
-        self.c32 = SeparableConv2D(128, 3, **kwargs)
+        self.c31 = Conv2D(128, 3, strides=2, **kwargs)
+        self.c32 = Conv2D(128, 3, **kwargs)
 
-        self.c41 = SeparableConv2D(256, 3, strides=2, **kwargs)
-        self.c42 = SeparableConv2D(256, 3, **kwargs)
+        self.c41 = Conv2D(256, 3, strides=2, **kwargs)
+        self.c42 = Conv2D(256, 3, **kwargs)
 
-        self.c51 = SeparableConv2D(512, 3, strides=2, **kwargs)
-        self.c52 = SeparableConv2D(512, 3, **kwargs)
+        self.c51 = Conv2D(512, 3, strides=2, **kwargs)
+        self.c52 = Conv2D(512, 3, **kwargs)
 
-        self.c61 = SeparableConv2D(1024, 3, strides=2, **kwargs)
-        self.c62 = SeparableConv2D(1024, 3, **kwargs)
+        self.c61 = Conv2D(1024, 3, strides=2, **kwargs)
+        self.c62 = Conv2D(1024, 3, **kwargs)
 
         kwargs = {'strides': 2, 'padding': 'SAME', 'activation': relu}
 
