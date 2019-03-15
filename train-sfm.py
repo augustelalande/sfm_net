@@ -15,6 +15,7 @@ batch_size = 16
 lr = 1e-5
 
 logs_path = "/localdata/auguste/logs_sfm"
+models_path = "/localdata/auguste/models"
 
 
 if __name__ == '__main__':
@@ -72,3 +73,6 @@ if __name__ == '__main__':
 
             if s % 50 == 0:
                 print("Iteration: {}  Loss: {}".format(s, l))
+
+            if s % 5000 == 0 and not s == 0:
+                model.save_weights(os.path.join(models_path, "sfm.h5"))
