@@ -88,8 +88,9 @@ kitti_raw_road = [
 ]
 
 
-kitti_scene_flow = [
-    "data_scene_flow"
+kitti_datasets = [
+    "data_scene_flow",
+    "data_depth_annotated"
 ]
 
 
@@ -156,7 +157,7 @@ def make_record(x, n, path):
         writer.write(example.SerializeToString())
 
 
-def make_training_set(root):
+def make_training_set_stereo(root):
     save_path = os.path.join(root, "stereo", "train")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -168,6 +169,33 @@ def make_training_set(root):
     frame1_paths = sorted(
         glob.glob(os.path.join(sequences, "*/image_03/data/*.png"))
     )
+    assert len(frame0_paths) == len(frame1_paths)
+
+    p = Pool()
+    n = len(frame0_paths)
+    q = enumerate(zip(frame0_paths, frame1_paths))
+    f = partial(make_record, n=n, path=save_path)
+
+    for _ in tqdm(p.imap_unordered(f, q), smoothing=0, total=n):
+        pass
+
+
+def make_training_set_sequence(root):
+    save_path = os.path.join(root, "sequence", "train")
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    frame0_paths = []
+    frame1_paths = []
+
+    for dir in glob.glob(os.path.join(root, "raw_sequences/*")):
+        paths = sorted(glob.glob(os.path.join(dir, "image_02/data/*.png")))
+        frame0_paths += paths[::2][:-1]
+        frame1_paths += paths[::2][1:]
+        paths = sorted(glob.glob(os.path.join(dir, "image_03/data/*.png")))
+        frame0_paths += paths[::2][:-1]
+        frame1_paths += paths[::2][1:]
+
     assert len(frame0_paths) == len(frame1_paths)
 
     p = Pool()
@@ -198,12 +226,18 @@ if __name__ == '__main__':
         kitti_raw_city + kitti_raw_residential + kitti_raw_road,
         url_template_raw
     )
+    maybe_download(
+        root,
+        kitti_datasets,
+        url_template_kitti
+    )
 
     print("Extracting data")
     extract_raw(
-        root,
-        kitti_raw_city + kitti_raw_residential + kitti_raw_road
+       root,
+       kitti_raw_city + kitti_raw_residential + kitti_raw_road
     )
 
     print("Creating TFRecords")
-    make_training_set(root)
+    make_training_set_stereo(root)
+    make_training_set_sequence(root)

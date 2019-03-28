@@ -13,6 +13,13 @@ _DATASETS = dict(
         frame_height=128,
         frame_width=384,
         num_channels=3
+    ),
+
+    sequence=DatasetInfo(
+        basepath='sequence',
+        frame_height=128,
+        frame_width=384,
+        num_channels=3
     )
 )
 _MODES = ('train', 'valid', 'test')
