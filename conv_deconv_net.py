@@ -1,37 +1,61 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Conv2DTranspose
+from tensorflow.keras.layers import BatchNormalization, Conv2D, Conv2DTranspose
 from tensorflow.keras.activations import relu
+
+
+class BConv2D(tf.keras.Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.conv = Conv2D(*args, **kwargs)
+        self.batch_norm = BatchNormalization()
+
+    def call(self, x):
+        x = self.conv(x)
+        x = self.batch_norm(x)
+        return relu(x)
+
+
+class BConv2DTranspose(tf.keras.Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.conv_transpose = Conv2DTranspose(*args, **kwargs)
+        self.batch_norm = BatchNormalization()
+
+    def call(self, x):
+        x = self.conv_transpose(x)
+        x = self.batch_norm(x)
+        return relu(x)
 
 
 class ConvDeconvNet(tf.keras.Model):
     def __init__(self):
         super().__init__()
-        kwargs = {'padding': 'SAME', 'activation': relu}
+        kwargs = {'padding': 'SAME'}
 
-        self.c11 = Conv2D(32, 3, **kwargs)
+        self.c11 = BConv2D(32, 3, **kwargs)
 
-        self.c21 = Conv2D(64, 3, strides=2, **kwargs)
-        self.c22 = Conv2D(64, 3, **kwargs)
+        self.c21 = BConv2D(64, 3, strides=2, **kwargs)
+        self.c22 = BConv2D(64, 3, **kwargs)
 
-        self.c31 = Conv2D(128, 3, strides=2, **kwargs)
-        self.c32 = Conv2D(128, 3, **kwargs)
+        self.c31 = BConv2D(128, 3, strides=2, **kwargs)
+        self.c32 = BConv2D(128, 3, **kwargs)
 
-        self.c41 = Conv2D(256, 3, strides=2, **kwargs)
-        self.c42 = Conv2D(256, 3, **kwargs)
+        self.c41 = BConv2D(256, 3, strides=2, **kwargs)
+        self.c42 = BConv2D(256, 3, **kwargs)
 
-        self.c51 = Conv2D(512, 3, strides=2, **kwargs)
-        self.c52 = Conv2D(512, 3, **kwargs)
+        self.c51 = BConv2D(512, 3, strides=2, **kwargs)
+        self.c52 = BConv2D(512, 3, **kwargs)
 
-        self.c61 = Conv2D(1024, 3, strides=2, **kwargs)
-        self.c62 = Conv2D(1024, 3, **kwargs)
+        self.c61 = BConv2D(1024, 3, strides=2, **kwargs)
+        self.c62 = BConv2D(1024, 3, **kwargs)
 
-        kwargs = {'strides': 2, 'padding': 'SAME', 'activation': relu}
+        kwargs = {'strides': 2, 'padding': 'SAME'}
 
-        self.u5 = Conv2DTranspose(512, 3, **kwargs)
-        self.u4 = Conv2DTranspose(256, 3, **kwargs)
-        self.u3 = Conv2DTranspose(128, 3, **kwargs)
-        self.u2 = Conv2DTranspose(64, 3, **kwargs)
-        self.u1 = Conv2DTranspose(32, 3, **kwargs)
+        self.u5 = BConv2DTranspose(512, 3, **kwargs)
+        self.u4 = BConv2DTranspose(256, 3, **kwargs)
+        self.u3 = BConv2DTranspose(128, 3, **kwargs)
+        self.u2 = BConv2DTranspose(64, 3, **kwargs)
+        self.u1 = BConv2DTranspose(32, 3, **kwargs)
 
     def call(self, x):
         x1 = self.c11(x)
