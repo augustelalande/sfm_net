@@ -15,16 +15,16 @@ class SfMNet(tf.keras.Model):
     def call(self, f0, f1):
         depth, pc = self.structure(f0)
         obj_params, cam_params = self.motion(f0, f1)
-        pc_t = apply_obj_transform(pc, *obj_params)
+        motion_maps, pc_t = apply_obj_transform(pc, *obj_params)
         pc_t = apply_cam_transform(pc, *cam_params)
         points, flow = optical_flow(pc_t)
-        return depth, points, flow, obj_params[0], pc_t
+        return depth, points, flow, obj_params, cam_params, pc_t, motion_maps
 
 
 def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
     b, h, w, c = pc.shape
 
-    p = _point_prior(obj_p)
+    p = _pivot_point(obj_p)
     R = _r_mat(tf.reshape(obj_r, [-1, 3]))
 
     p = tf.reshape(p, [b, 1, 1, num_masks, 3])
@@ -40,16 +40,17 @@ def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
     pc_t = R @ pc_t
     pc_t = tf.reshape(pc_t, [b, h, w, num_masks, 3])
     pc_t = pc_t + t - pc
+    motion_maps = mask * pc_t
 
     pc = tf.reshape(pc, [b, h, w, 3])
-    pc_t = pc + tf.reduce_sum(mask * pc_t, -2)
-    return pc_t
+    pc_t = pc + tf.reduce_sum(motion_maps, -2)
+    return motion_maps, pc_t
 
 
 def apply_cam_transform(pc, cam_t, cam_p, cam_r):
     b, h, w, c = pc.shape
 
-    p = _point_prior(cam_p)
+    p = _pivot_point(cam_p)
     R = _r_mat(cam_r)
 
     p = tf.reshape(p, [b, 1, 1, 3])
@@ -89,16 +90,16 @@ def _project_2d(pc, camera_intrinsics):
     return tf.stack([x, y], -1)
 
 
-def _point_prior(p):
-    p = tf.reshape(p, [-1, 30, 20])
-    p_x = tf.reduce_sum(p, 2)
-    p_y = tf.reduce_sum(p, 1)
+def _pivot_point(p):
+    p = tf.reshape(p, [-1, 20, 30])
+    p_x = tf.reduce_sum(p, 1)
+    p_y = tf.reduce_sum(p, 2)
 
     x_l = tf.linspace(-30.0, 30.0, 30)
     y_l = tf.linspace(-20.0, 20.0, 20)
 
-    P_x = tf.reduce_mean(p_x * x_l, -1)
-    P_y = tf.reduce_mean(p_y * y_l, -1)
+    P_x = tf.reduce_sum(p_x * x_l, -1)
+    P_y = tf.reduce_sum(p_y * y_l, -1)
     ground = tf.ones_like(P_x)
 
     P = tf.stack([P_x, P_y, ground], 1)

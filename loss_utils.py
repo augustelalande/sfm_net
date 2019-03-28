@@ -8,12 +8,16 @@ def frame_loss(x0, x1, points):
     return mse(x0, x1_t), x1_t
 
 
-def spatial_smoothness_loss(x):
+def spatial_smoothness_loss(x, order=1):
+    b, h, w, c = x.shape
     gradients = tf.image.sobel_edges(x)
+    for i in range(order - 1):
+        gradients = tf.reshape(gradients, [b, h, w, -1])
+        gradients = tf.image.sobel_edges(gradients)
     return tf.reduce_mean(tf.square(gradients))
 
 
-def forward_backward_consistency_loss(d0, d1, points, pc_t):
+def forward_backward_consistency_loss(d1, points, pc_t):
     warp = points_to_warp(points)
     d1_t = tf.contrib.resampler.resampler(d1, warp) / 100
     Z0 = pc_t[:, :, :, 2:3] / 100
