@@ -7,11 +7,11 @@ class BConv2D(tf.keras.Model):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.conv = Conv2D(*args, **kwargs)
-        self.batch_norm = BatchNormalization()
+        # self.batch_norm = BatchNormalization()
 
     def call(self, x):
         x = self.conv(x)
-        x = self.batch_norm(x)
+        # x = self.batch_norm(x)
         return relu(x)
 
 
@@ -19,11 +19,11 @@ class BConv2DTranspose(tf.keras.Model):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.conv_transpose = Conv2DTranspose(*args, **kwargs)
-        self.batch_norm = BatchNormalization()
+        # self.batch_norm = BatchNormalization()
 
     def call(self, x):
         x = self.conv_transpose(x)
-        x = self.batch_norm(x)
+        # x = self.batch_norm(x)
         return relu(x)
 
 

@@ -19,9 +19,9 @@ def spatial_smoothness_loss(x, order=1):
 
 def forward_backward_consistency_loss(d1, points, pc_t):
     warp = points_to_warp(points)
-    d1_t = tf.contrib.resampler.resampler(d1, warp) / 100
-    Z0 = pc_t[:, :, :, 2:3] / 100
-    return mse(d1_t, Z0)
+    d1_t = tf.contrib.resampler.resampler(d1, warp)
+    Z0 = pc_t[:, :, :, 2:3]
+    return mse(d1_t / 100, Z0 / 100)
 
 
 def points_to_warp(points):

@@ -12,11 +12,11 @@ class SfMNet(tf.keras.Model):
         self.structure = StructureNet()
         self.motion = MotionNet()
 
-    def call(self, f0, f1):
+    def call(self, f0, f1, sharpness_multiplier):
         depth, pc = self.structure(f0)
-        obj_params, cam_params = self.motion(f0, f1)
+        obj_params, cam_params = self.motion(f0, f1, sharpness_multiplier)
         motion_maps, pc_t = apply_obj_transform(pc, *obj_params)
-        pc_t = apply_cam_transform(pc, *cam_params)
+        pc_t = apply_cam_transform(pc_t, *cam_params)
         points, flow = optical_flow(pc_t)
         return depth, points, flow, obj_params, cam_params, pc_t, motion_maps
 
@@ -36,9 +36,7 @@ def apply_obj_transform(pc, obj_mask, obj_t, obj_p, obj_r, num_masks=3):
     mask = tf.reshape(obj_mask, [b, h, w, num_masks, 1])
 
     pc_t = pc - p
-    pc_t = tf.expand_dims(pc_t, -1)
-    pc_t = R @ pc_t
-    pc_t = tf.reshape(pc_t, [b, h, w, num_masks, 3])
+    pc_t = _apply_r(pc_t, R)
     pc_t = pc_t + t - pc
     motion_maps = mask * pc_t
 
@@ -59,9 +57,7 @@ def apply_cam_transform(pc, cam_t, cam_p, cam_r):
     R = tf.tile(R, [1, h, w, 1, 1])
 
     pc_t = pc - p
-    pc_t = tf.expand_dims(pc_t, -1)
-    pc_t = R @ pc_t
-    pc_t = tf.reshape(pc_t, [b, h, w, 3])
+    pc_t = _apply_r(pc_t, R)
     pc_t = pc_t + t
     return pc_t
 
@@ -133,3 +129,9 @@ def _r_mat(r):
     ], -2)
 
     return R_x @ R_y @ R_z
+
+
+def _apply_r(pc, R):
+    # for some reason matmul stopped working in tf 1.13
+    pc = tf.expand_dims(pc, -2)
+    return tf.reduce_sum(R * pc, -1)
