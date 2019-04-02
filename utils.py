@@ -163,7 +163,7 @@ def commit_changes(session_name):
     path, _ = os.path.split(__file__)
     repo = Repo(path)
     assert not repo.bare
-    assert str(repo.active_branch) == "dev"
+    assert str(repo.active_branch) == "experiments"
     index = repo.index
     index.add(["*.py"])
     index.commit(session_name)
